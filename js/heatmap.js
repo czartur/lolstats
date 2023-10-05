@@ -44,12 +44,18 @@ function updateHeatmap(){
         // removing old data
         d3.select("#heatmap-data").remove();
         d3.select("#champion-pic").remove();
-        
+        d3.select("#legend").remove();
+
         // insert champion square asset
-        d3.select("square")
+        console.log(championName) // works well
+        d3.select("#square")
+            .append("image") 
             .attr("id", "champion-pic")
-            .append("svg:image") 
-            .attr("xlink:href", `http://ddragon.leagueoflegends.com/cdn/13.19.1/img/champion/${championName}.png`);
+            .attr("xlink:href", `http://ddragon.leagueoflegends.com/cdn/13.19.1/img/champion/${championName}.png`)
+            .attr("x", 10) 
+            .attr("y", 10) 
+            .attr("width", 90)
+            .attr("height", 90);
 
         // inserting data to shape
         svg.append("g")
@@ -59,7 +65,18 @@ function updateHeatmap(){
             .enter().append("path")
             .attr("d", d3.geoPath())
             .attr("fill", function(d) { return color(d.value); });
-        
+
+        //Color legend
+        var legend = d3.legendColor()
+            .scale(color)
+            .title("Legend")
+            .labelFormat(d3.format(".2f"))
+            .titleWidth(100) 
+            .classPrefix("legend");
+        svg.append("g")
+            .attr("id", "legend")
+            .attr("transform", "translate(450, 10)") 
+            .call(legend);
 
     });            
 }
@@ -147,7 +164,7 @@ function createViz(){
     const mainDiv = d3.select("#main");
     // append heatmap svg
     mainDiv.append("svg")
-        .attr("width", ctx.width + ctx.margin.left + ctx.margin.right)
+        .attr("width", ctx.width + ctx.margin.left + ctx.margin.right + 500)
         .attr("height", ctx.height + ctx.margin.top + ctx.margin.bottom)
         .append("g")
     .attr("id", "svg")
@@ -156,8 +173,7 @@ function createViz(){
     mainDiv.append("svg")
         .attr("id", "square")
         .attr("width", ctx.width + ctx.margin.left + ctx.margin.right)
-        .attr("hwight", 100)
-        .attr("transform", `translate()`)
+        .attr("height", 100)
 
     // append controls
     mainDiv.append("g")

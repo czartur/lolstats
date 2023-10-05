@@ -6,7 +6,24 @@
         <!-- https://d3js.org/ -->
         <script type="text/javascript" src="js/d3.v7.min.js"></script>
         <script src="https://d3js.org/d3-contour.v1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
         <script type="text/javascript" src="js/heatmap.js"></script>
+        <style type="text/css">
+            
+            svg {
+                display: block;
+                font-family: sans-serif;
+                font-size: 10px;
+            }
+
+            .legend {
+                font-size: 20px; /* Adjust the font size as needed */
+                font-weight: bold; /* Make it bold if desired */
+                fill: #333; /* Change the text color */
+                /* Add other styles as desired */
+            }
+                        
+            </style>
     </head>
     <body onload="createViz()">
         <div id="main"> 
