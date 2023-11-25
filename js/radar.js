@@ -1,0 +1,254 @@
+var ctx = {
+  elo: "challenger",
+  region: "", // input field
+  champions: new Set(), // champions added
+  stats: {}, // region --> champion --> attribute
+  championList: [], // list with all champions
+  regionMap: { // map region name to region code
+    "Europe West": "euw1",
+    "Europe Nordic & East": "eun1",
+    "Turkey" : "tr1",
+    "Russia": "ru",
+    "Brazil": "br1",
+    "North America": "na1",
+    "Latin America North": "la1",
+    "Latin America South": "la2",
+    "Japan" : "jp1",
+    "Oceania" : "oc1",
+  }, 
+  color: d3.scaleOrdinal(d3.schemeCategory10), // associate champions to unique colors
+};
+
+function updateRegion(){
+    var region = d3.select("#input-region").property("value"); 
+
+    // remove previous pic
+    // d3.select("#region-pic").remove();
+    
+    // check if region is valid
+    if(!Object.keys(ctx.regionMap).includes(region)) return;
+    ctx.region = region;
+    
+    // what we need to update next 
+    updateRadar();
+    updateRegionPic();
+}
+
+function updateChampions(newChampion = "", mode = "add"){
+
+  if(mode == "add"){
+    if(newChampion == "")
+      newChampion = d3.select("#input-champion").property("value");
+    if(!ctx.championList.includes(newChampion)) return;
+    ctx.champions.add(newChampion);
+  }
+  else{ // mode == remove
+    ctx.champions.delete(newChampion);
+  }
+  
+  // what we need to update next 
+  updateRadar();
+  updateLegend();
+}
+
+function updateRadar(){ 
+    // check inputs 
+    if(ctx.region == "" || !ctx.champions.size) return;
+    const data = ctx.stats[ctx.region];
+    
+    // setup radar function parameters
+    var margin = {top: 100, right: 100, bottom: 100, left: 100},
+        width = Math.min(400, window.innerWidth - 10) - margin.left - margin.right,
+        height = Math.min(width, window.innerHeight - margin.top - margin.bottom - 20);
+        
+    var radarChartOptions = {
+        w: width,
+        h: height,
+        margin: margin,
+        maxValue: 0.5,
+        levels: 5,
+        roundStrokes: false,  
+        color: ctx.color,
+    };
+
+    // extract input
+    stats = ['popularity', 'gameEndedInSurrender', 'win', 'timePlayed'];
+    var inputData = [];
+    for(let champion of ctx.champions){
+      var championData = [];
+      for(let stat of stats){
+        championData.push({"axis" : stat, "norm" : data[champion][stat].norm, "abs" : data[champion][stat].abs});
+      }
+      inputData.push(championData);
+    }
+
+    // create/update radar
+    RadarChart(".radar", inputData, radarChartOptions);
+}
+
+function updateLegend(){
+    var picWidth = 100,
+        picHeight = 100,
+        rectWidth = 100,
+        rectHeight = 20;
+
+    var svg = d3.select(".legend").select("svg");
+    
+    svg.selectAll("g")
+      .data(ctx.champions, (d,i) => d)
+      .join(
+        enter => {
+          // append new group
+          var groupEnter = enter.append("g");
+
+          // image
+          groupEnter.append("image")
+              .attr("xlink:href", d => `https://ddragon.leagueoflegends.com/cdn/13.22.1/img/champion/${d}.png`)  
+              .attr("width", picWidth)
+              .attr("height", picHeight);
+              
+          // colored rectangle
+          groupEnter.append("rect")
+              .attr("width", rectWidth)
+              .attr("height", rectHeight)
+              .attr("transform", `translate(0,${picHeight})`)
+              .attr("fill", (d,i) => ctx.color(i));
+          
+          // champion name
+          groupEnter.append("text")
+              .text(d => d)
+              .attr("x", picHeight/2)
+              .attr("text-anchor", "middle")
+              .attr("font-size", "14px")
+              .attr("transform", `translate(0,${picHeight + rectHeight - 5})`);
+
+          // translate group
+          groupEnter
+              .transition()
+              .duration(1000)
+              .attr("transform", (d,i) => `translate(${i * (100 + 20)}, 0)`);
+       },
+        update => {
+          // update position
+          update
+            .transition()
+            .duration(1000)
+            .attr("transform", (d,i) => `translate(${i * (100 + 20)}, 0)`);
+
+          // update color
+          update.select("rect")
+            .attr("fill", (d,i) => ctx.color(i));
+        },
+        exit => exit
+            .transition()
+            .duration(1000)
+            .style("transform", "scale(0)")
+            .remove(),
+      );
+  
+    // listener: double click to remove image
+    svg.selectAll("image")
+      .on("dblclick", function (_, d) {
+        updateChampions(newChampion = d, mode = "remove");
+      });
+}
+
+function updateRegionPic(){
+    var svg = d3.select("#group-region").select("svg");
+    
+    //remove previous picture
+    d3.select("#region-pic").remove();
+
+    // add picture
+    svg.append("image") 
+      .attr("id", "region-pic")
+      .attr("xlink:href", `assets/${ctx.regionMap[ctx.region]}.png`)
+      .attr("width", 100)
+      .attr("height", 100);
+}
+
+function initInputBox(inputContainer, name, data, pic = true, add = false){
+    const label = add ? `Add a ${name} : ` : `Select a ${name}: `;
+    const group_id = `group-${name}`;
+    const input_id = `input-${name}`;
+    const datalist_id = `${name}-list`;
+    const button_id = `button-${name}`;
+
+    var g = inputContainer.append("g")
+    .attr("id", group_id)
+    .style("display", "flex")
+    .style("align-items", "center");
+    
+    // add label
+    g.append("label")
+      .text(label)
+    .append("input")
+      .attr("id", input_id)
+      .attr("type", "text")
+      .attr("list", datalist_id)
+    .append("datalist")
+      .attr("id", datalist_id)
+      .style("margin-right", "10px");
+
+    // add option list
+    d3.select("#" + datalist_id)
+      .selectAll("option")
+      .data(data)
+      .enter()
+      .append("option")
+      .attr("value", d => d);
+
+    if(pic){
+      // add svg for picture
+      g.append("svg")
+        .attr("width", 150)
+        .attr("height", 150);
+    }
+
+    // add event listeners
+    d3.select("#" + input_id).on("input", () => {
+      updateRegion();
+      updateChampions();
+    });
+}
+
+function initLegend(legendContainer){
+    // create SVG
+    legendContainer.append("svg")
+      .attr("width", "1000")
+      .attr("height", "150");
+}
+
+function loadData(){
+    promises = [d3.json('data/championlist.json')];
+    for(var region in ctx.regionMap){
+      promises.push(d3.json(`data/formated/stats_${ctx.regionMap[region]}_${ctx.elo}.json`));
+    }
+    
+    Promise.all(promises).then((data) => {
+      var index = 0;
+      ctx.championList = data[index++];
+      
+      for(var region in ctx.regionMap){
+        ctx.stats[region] = data[index++]; 
+      }
+      
+      // region input box 
+      inputContainer = d3.select("#div-region");
+      initInputBox(inputContainer, "region", Object.keys(ctx.regionMap));
+
+      // champion input box
+      inputContainer = d3.select("#div-champion");
+      initInputBox(inputContainer, "champion", ctx.championList, true, true);
+      
+      // champion list legend
+      legendContainer = d3.select(".legend");
+      initLegend(legendContainer);
+
+    });
+}
+
+function createViz(){ 
+    loadData();
+}
+
