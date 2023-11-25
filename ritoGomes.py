@@ -29,11 +29,20 @@ requests.get = sleep_and_retry(requests.get)
 map_region = {
     "euw1" : "europe",
     "eun1" : "europe",
+    "tr1" : "europe",
+    "ru" : "europe",
     "br1" : "americas",
-    "na1" :"americas",
+    "na1" : "americas",
+    "la1" : "americas",
+    "la2" : "americas",
     "kr" : "asia",
     "jp1" : "asia",
     "oc1" : "sea",
+    "ph2" : "sea",
+    "sg2" : "sea",
+    "th2" : "sea",
+    "tw2" : "sea",
+    "vn2" : "sea",
 }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ API requests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 """

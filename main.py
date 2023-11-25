@@ -61,7 +61,11 @@ def update_heatmap(region: str, elo: str) -> None:
     
     # update heatmap data using all matches
     for i, matchid in enumerate(matchid_data, 1):
-        update_heatmap_from_match(matchid, heatmap_data)
+        try:
+            update_heatmap_from_match(matchid, heatmap_data)
+        except Exception as e:
+            print(i, str(e))
+            continue
         print(i, matchid)
 
     write_to_json(heatmap_data, f'data/heatmap_{region}_{elo}.json')
@@ -85,8 +89,12 @@ def update_champion_stats(region: str, elo: str, wanted_stats: List[str]) -> Non
 
     # update stats data using all matches
     for i, matchid in enumerate(matchid_data, 1):
-        champion_list = riot.request_champions_in_match(region, matchid)
-        match_data = riot.request_match_data(region, matchid)
+        try:
+            champion_list = riot.request_champions_in_match(region, matchid)
+            match_data = riot.request_match_data(region, matchid)
+        except Exception as e:
+            print(i, str(e))
+            continue
 
         for participant_idx, champion in enumerate(champion_list):
             if champion not in stats_data.keys():
@@ -94,7 +102,7 @@ def update_champion_stats(region: str, elo: str, wanted_stats: List[str]) -> Non
             
             # filter data
             champ_data = match_data['info']['participants'][participant_idx]
-            champ_data = {key:value for key, value in champ_data.items() if key in wanted_stats}
+            champ_data = {key:value for key, value in champ_data.items() if not key in wanted_stats}
             
             stats_data[champion].append(champ_data)
         print(i, matchid)
@@ -113,7 +121,12 @@ def update_ban_rate(region: str, elo: str) -> None:
     id_to_name = riot.request_champions_id() 
     
     for i, matchid in enumerate(matchid_data, 1):
-        match_data = riot.request_match_data(region, matchid)
+        try:
+            match_data = riot.request_match_data(region, matchid)
+        except Exception as e:
+            print(i, str(e))
+            continue
+
         ban_list = [id_to_name[ban['championId']] for ban in (match_data['info']['teams'][0]['bans'] + match_data['info']['teams'][1]['bans']) if ban['championId'] != -1]
         
         # count champion
@@ -128,13 +141,27 @@ def update_ban_rate(region: str, elo: str) -> None:
 
 
 def main():
-    update_heatmap('kr', 'challenger')
+    # regions = ["euw1", "eun1", "tr1", "ru", "br1", "na1", "la1", "la2", "kr", "jp1", "oc1", "ph2", "sg2", "th2", "tw2", "vn2"]
+    regions = ["vn2"]
+    elo = "challenger"
+    for region in regions:
+        # update_matchid_list(region, elo)
+        
+        # update_heatmap(region, elo)
+ 
+        # combat_stats = ['kills', 'deaths', 'assists', 'timeCCingOthers', 'totalHealsOnTeammates', 'totalDamageTaken', 'totalDamageDealt']
+        # income_control_stats = ['goldEarned', 'goldSpent', 'neutralMinionsKilled', 'totalMinionsKilled', 'visionScore', 'baronKills', 'dragonKills', 'turretTakedowns', 'inhibitorKills']
+        # game_stats = ['timePlayed', 'win', 'gameEndedInSurrender', 'role', 'lane', 'summoner1Id', 'summoner2Id', 'summoner1Casts', 'summoner2Casts']
+        # wanted_stats = combat_stats + income_control_stats + game_stats
+        # update_champion_stats(region, elo, wanted_stats = wanted_stats)
+        
+        update_champion_stats(region, elo, wanted_stats = []) # no filter
+        
+        # update_ban_rate(region, elo)
 
 if __name__ == "__main__":
     main()
 
-
-# wanted_stats = ['win', 'kills', 'deaths', 'assists', 'goldEarned', 'neutralMinionsKilled', 'timePlayed', 'visionScore', 'totalHealsOnTeammates', 'totalDamageDealt', 'timeCCingOthers', 'totalDamageTaken', 'baronKills', 'dragonKills', 'inhibitorKills', 'turretKills']
 # combat_stats = ['kills', 'deaths', 'assists', 'timeCCingOthers', 'totalHealsOnTeammates', 'totalDamakeTaken', 'totalDamageDealt']
 # income_control_stats = ['goldEarned', 'neutralMinionsKilled', 'timePlayed', 'visionScore', 'baronKills', 'dragonKills', 'turretKills', 'inhibitorKills']
 # wanted_stats = combat_stats + income_control_stats
