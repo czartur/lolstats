@@ -247,7 +247,7 @@ function loadData(chartContainer, inputContainer, sliderContainer){
   promises = [d3.json(championListFile)];
 
   for(var region in regionMap){
-    promises.push(d3.json(`data/heatmap_${regionMap[region]}_${elo}.json`));
+    promises.push(d3.json(`data/heatmap/heatmap_${regionMap[region]}_${elo}.json`));
   }
 
   Promise.all(promises).then((data) => {

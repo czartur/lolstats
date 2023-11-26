@@ -103,9 +103,8 @@ function updateData()
     const attr = d3.select("#input-attr").property("value");
 
     const urlCountries = ctx.selectedCountries.map(country => regionMap[country]);
-    console.log(urlCountries);
     const promises = urlCountries.map(countryCode => {
-        const url = `data/formatedstats_${countryCode}_challenger.json`;
+        const url = `data/stats/stats_${countryCode}_challenger.json`;
         return d3.json(url);
     }); 
 
@@ -155,7 +154,7 @@ function updateChampionPic(){
 }
 
 function initInputBox(){
-    Promise.all([d3.json("data/championlist.json")]).then(function(data){
+    Promise.all([d3.json("data/championlist.json"), d3.json("data/attributes.json")]).then(function(data){
         //Champions à choisir
         // html block
         const controls = d3.select("#controls").style("display", "flex");
@@ -192,7 +191,7 @@ function initInputBox(){
                 .attr("id", "attributs-list") 
         d3.select("#attributs-list")
                 .selectAll("option")
-                .data(ctx.Attributes)
+                .data(data[1])
                 .enter()
                 .append("option")
                 .attr("value", d => d);
@@ -206,7 +205,6 @@ function initInputBox(){
                     .attr("list", "country-list")
                 .append("datalist") //append datalist
                     .attr("id", "country-list") 
-            console.log(Object.keys(regionMap))
         d3.select("#country-list")
                     .selectAll("option")
                     .data(Object.keys(regionMap))
@@ -217,7 +215,7 @@ function initInputBox(){
         // add svg for picture
         const imageContainer = controls.append("div")
             .attr("class", "image-container")
-            .style("margin-left", "20px");
+            .style("margin-right", "20px");
 
         imageContainer.append("svg")
             .attr("width", 100)
@@ -235,9 +233,8 @@ function initInputBox(){
             const attrValue = attrBox.node().value;
             const countryValue = countryBox.node().value;
             //add a bar for a chosen country
-            if (Object.keys(regionMap).includes(countryValue)) addCountry(countryValue);
-
-            if (data[0].includes(boxValue) && ctx.Attributes.includes(attrValue)) {
+            if (Object.keys(regionMap).includes(countryValue) && data[0].includes(boxValue) && data[1].includes(attrValue)) {
+                addCountry(countryValue);
                 updateChampionPic();
                 updateData();//updateBarPlot();
             }
@@ -249,8 +246,8 @@ function createViz(){
     const mainDiv = d3.select("#main");
     mainDiv.append("g")
         .attr("id", "controls");
-    const svg = mainDiv.append("svg")
-        .attr("width", ctx.width + ctx.margin.left + ctx.margin.right + 500)
+    const svg = mainDiv.append("div").attr("class", "barplot").append("svg")
+        .attr("width", ctx.width + ctx.margin.left + ctx.margin.right + 200)
         .attr("height", ctx.height + ctx.margin.top + ctx.margin.bottom + 100)
         .append("g")
     .attr("id", "svg")

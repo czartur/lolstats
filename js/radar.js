@@ -15,7 +15,12 @@ var ctx = {
     "Latin America South": "la2",
     "Japan" : "jp1",
     "Oceania" : "oc1",
-  }, 
+  },
+  wantedStats: {
+    general: ["popularity", "gameEndedInSurrender", "win", "timePlayed"],
+    gameplay: ["kda", "visionScore", "structureScore", "damagePerGold"],
+    communication: ['commandPings', 'onMyWayPings', 'getBackPings', 'assistMePings', 'enemyMissingPings', 'enemyVisionPings'],
+  },
   color: d3.scaleOrdinal(d3.schemeCategory10), // associate champions to unique colors
 };
 
@@ -35,25 +40,34 @@ function updateRegion(){
 }
 
 function updateChampions(newChampion = "", mode = "add"){
+    if(mode == "add"){
+      if(newChampion == "")
+        newChampion = d3.select("#input-champion").property("value");
+      if(!ctx.championList.includes(newChampion)) return;
+      ctx.champions.add(newChampion);
+    }
+    else{ // mode == remove
+      ctx.champions.delete(newChampion);
+    }
+    
+    // what we need to update next 
+    updateRadar();
+    updateLegend();
+    updateFootnote();
+}
 
-  if(mode == "add"){
-    if(newChampion == "")
-      newChampion = d3.select("#input-champion").property("value");
-    if(!ctx.championList.includes(newChampion)) return;
-    ctx.champions.add(newChampion);
-  }
-  else{ // mode == remove
-    ctx.champions.delete(newChampion);
-  }
-  
-  // what we need to update next 
-  updateRadar();
-  updateLegend();
+function updateFootnote(){
+    let msg = ctx.champions.size ? "Double click a champion to delete it" : "Add at least one champion to start"; 
+    d3.select(".footnote")
+        .html(msg);
 }
 
 function updateRadar(){ 
     // check inputs 
-    if(ctx.region == "" || !ctx.champions.size) return;
+    if(ctx.region == "" || !ctx.champions.size){
+      d3.select(".radar").selectAll("svg").remove();
+      return;
+    }
     const data = ctx.stats[ctx.region];
     
     // setup radar function parameters
@@ -72,18 +86,21 @@ function updateRadar(){
     };
 
     // extract input
-    stats = ['popularity', 'gameEndedInSurrender', 'win', 'timePlayed'];
-    var inputData = [];
-    for(let champion of ctx.champions){
-      var championData = [];
-      for(let stat of stats){
-        championData.push({"axis" : stat, "norm" : data[champion][stat].norm, "abs" : data[champion][stat].abs});
-      }
-      inputData.push(championData);
-    }
+    // stats = ['popularity', 'gameEndedInSurrender', 'win', 'timePlayed'];
+    for(let statsCategory in ctx.wantedStats){
+        var inputData = [];
+        for(let champion of ctx.champions){
+          var championData = [];
+          for(let stat of ctx.wantedStats[statsCategory]){
+            championData.push({"axis" : stat, "norm" : data[champion][stat].norm, "abs" : data[champion][stat].abs});
+          }
+          inputData.push(championData);
+        }
 
-    // create/update radar
-    RadarChart(".radar", inputData, radarChartOptions);
+        // create/update radar
+        let group_id = `#${statsCategory}-stats`; 
+        RadarChart(group_id, inputData, radarChartOptions);
+    }
 }
 
 function updateLegend(){
@@ -222,7 +239,7 @@ function initLegend(legendContainer){
 function loadData(){
     promises = [d3.json('data/championlist.json')];
     for(var region in ctx.regionMap){
-      promises.push(d3.json(`data/formated/stats_${ctx.regionMap[region]}_${ctx.elo}.json`));
+      promises.push(d3.json(`data/stats/stats_${ctx.regionMap[region]}_${ctx.elo}.json`));
     }
     
     Promise.all(promises).then((data) => {
@@ -235,16 +252,27 @@ function loadData(){
       
       // region input box 
       inputContainer = d3.select("#div-region");
-      initInputBox(inputContainer, "region", Object.keys(ctx.regionMap));
+      initInputBox(d3.select(".inputs"), "region", Object.keys(ctx.regionMap));
 
       // champion input box
       inputContainer = d3.select("#div-champion");
-      initInputBox(inputContainer, "champion", ctx.championList, true, true);
+      initInputBox(d3.select(".inputs"), "champion", ctx.championList, true, true);
       
       // champion list legend
       legendContainer = d3.select(".legend");
       initLegend(legendContainer);
 
+      // radar charts
+      radarContainer = d3.select(".radar");
+      // 1. general stats
+      radarContainer.append("g").attr("id", "general-stats");
+      // 2. gameplay stats
+      radarContainer.append("g").attr("id", "gameplay-stats");
+      // 3. communication stats
+      radarContainer.append("g").attr("id", "communication-stats");
+      
+      // toggle footnote
+      updateFootnote();
     });
 }
 
