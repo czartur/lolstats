@@ -7,21 +7,8 @@
         <script type="text/javascript" src="js/d3.v7.min.js"></script>
         <script src="https://d3js.org/d3-contour.v1.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
-        <script type="text/javascript" src="js/radar.js"></script>
-        <script type="text/javascript" src="js/nadiehBremer.js"></script>
+        <script type="text/javascript" src="js/tabular.js"></script>
         <style type="text/css">    
-          svg {
-                display: block;
-                font-family: sans-serif;
-                font-size: 10px;
-            }
-
-          .radar {
-            display: flex;
-            margin: 0 auto;
-            justify-content: center;
-          }
-
           .inputs {
             display: flex;
             justify-content: center;
@@ -29,10 +16,12 @@
             height: 10vh;
           }
 
-          .legend {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+          th.selected {
+            background-color: #f2f2f2;
+          }
+
+          label {
+            margin-right: 10px;
           }
 
           .footnote {
@@ -44,9 +33,6 @@
             margin-top: 10px;
           }
 
-          label {
-            margin-right: 10px;
-          }
       </style>
                         
     </head>
@@ -54,10 +40,8 @@
 
         <div id="main">
           <a href="index.html"><button>Menu</button></a>
-          <div class="inputs" id="div-region"></div>
-          <div class="inputs" id="div-champion"></div>
-          <div class="legend"></div>
-          <div class="radar"></div>
+          <div class="inputs"></div>
+          <div class="table"></div>
           <div class="footnote"></div>
         </div>
     </body>
