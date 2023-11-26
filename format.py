@@ -5,9 +5,9 @@ regions = ["euw1", "eun1", "tr1", "ru", "br1", "na1", "la1", "la2", "kr", "jp1",
 
 def FormatStats(region, elo):
     
-    ban_path = f"data/championban_{region}_{elo}.json"
-    data_path = f"data/championstats_{region}_{elo}.json"
-    write_path = f"data/formated/stats_{region}_{elo}.json"
+    ban_path = f"raw_data/championban_{region}_{elo}.json"
+    data_path = f"raw_data/championstats_{region}_{elo}.json"
+    write_path = f"raw_data/formated/stats_{region}_{elo}.json"
 
     with open(data_path, 'r') as json_file:
         data = json.load(json_file)
@@ -63,8 +63,8 @@ def FormatStats(region, elo):
 
 
 def generateChampionList(region, elo):
-    read_path = f"data/championstats_{region}_{elo}.json"
-    write_path = f"data/championlist.json"
+    read_path = f"raw_data/championstats_{region}_{elo}.json"
+    write_path = f"raw_data/championlist.json"
 
     with open(read_path, 'r') as json_file:
         data = json.load(json_file)

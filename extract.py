@@ -26,7 +26,7 @@ def update_matchid_list(region: str, elo: str, games_per_player: int = 20) -> No
         matchid_list.update(riot.request_match_list(region, player['puuid'], count = games_per_player))
         print(i, item['summonerName'])
 
-    write_to_json(list(matchid_list), f'data/matchid_{region}_{elo}.json')
+    write_to_json(list(matchid_list), f'raw_data/matchid_{region}_{elo}.json')
 
 """
 Updates heatmap data containing 
@@ -51,12 +51,12 @@ def update_heatmap(region: str, elo: str) -> None:
                 heatmap_data[champion][frame_idx].append(frame_data['participantFrames'][str(participant_idx)]['position'])
     
     # read matchid data
-    if not (matchid_data := read_json(f'data/matchid_{region}_{elo}.json')):
+    if not (matchid_data := read_json(f'raw_data/matchid_{region}_{elo}.json')):
         print('matchid file not found')
         return
     
     # read heatmap data
-    if not (heatmap_data := read_json(f'data/heatmap_{region}_{elo}.json')):
+    if not (heatmap_data := read_json(f'raw_data/heatmap_{region}_{elo}.json')):
         heatmap_data = dict()
     
     # update heatmap data using all matches
@@ -68,7 +68,7 @@ def update_heatmap(region: str, elo: str) -> None:
             continue
         print(i, matchid)
 
-    write_to_json(heatmap_data, f'data/heatmap_{region}_{elo}.json')
+    write_to_json(heatmap_data, f'raw_data/heatmap_{region}_{elo}.json')
 
 """
 Uploads champion stats data containing
@@ -79,11 +79,11 @@ a list of stat info for each champion
 """
 def update_champion_stats(region: str, elo: str, wanted_stats: List[str]) -> None:
     # read matchid data
-    if not (matchid_data := read_json(f'data/matchid_{region}_{elo}.json')):
+    if not (matchid_data := read_json(f'raw_data/matchid_{region}_{elo}.json')):
         print('matchid file not found')
         return
     # read champion_stats data
-    # if not (stats_data := read_json(f'data/championstats_{region}_{elo}.json')):
+    # if not (stats_data := read_json(f'raw_data/championstats_{region}_{elo}.json')):
         # stats_data = dict()
     stats_data = dict()
 
@@ -107,11 +107,11 @@ def update_champion_stats(region: str, elo: str, wanted_stats: List[str]) -> Non
             stats_data[champion].append(champ_data)
         print(i, matchid)
 
-    write_to_json(stats_data, f'data/championstats_{region}_{elo}.json')
+    write_to_json(stats_data, f'raw_data/championstats_{region}_{elo}.json')
 
 def update_ban_rate(region: str, elo: str) -> None:
     # read matchid data
-    if not (matchid_data := read_json(f'data/matchid_{region}_{elo}.json')):
+    if not (matchid_data := read_json(f'raw_data/matchid_{region}_{elo}.json')):
         print('matchid file not found')
         return
     # ban data for each champ
@@ -137,7 +137,7 @@ def update_ban_rate(region: str, elo: str) -> None:
 
         print(i, matchid)
 
-    write_to_json(ban_data, f'data/championban_{region}_{elo}.json')
+    write_to_json(ban_data, f'raw_data/championban_{region}_{elo}.json')
 
 
 def main():
