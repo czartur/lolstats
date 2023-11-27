@@ -143,15 +143,14 @@ function initInputBox(){
             .style("flex", "0.4");
 
         inputContainer.append("p")
-            .append("label") // append label
+            .append("label") 
                 .text("Select a region: ")
-            .append("input") // append input
+            .append("input")
                 .attr("id", "input-country")
                 .attr("type", "text")
                 .attr("list", "country-list")
-            .append("datalist") //append datalist
+            .append("datalist")
                 .attr("id", "country-list") 
-      //  console.log(Object.keys(regionMap))
         d3.select("#country-list")
                 .selectAll("option")
                 .data(Object.keys(regionMap))
