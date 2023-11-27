@@ -160,9 +160,7 @@ function initInputBox(){
                     .attr("value", d => d);
 
         // add svg for picture
-        const imageContainer = controls.append("div")
-            .attr("class", "image-container")
-            .style("margin-left", "20px");
+        const imageContainer = inputContainer.append("p");
 
         imageContainer.append("svg")
             .attr("width", 100)
