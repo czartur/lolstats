@@ -198,7 +198,7 @@ function initInputBox(){
 
         inputContainer.append("p")
                 .append("label") // append label
-                    .text("Add a country: ")
+                    .text("Select a region: ")
                 .append("input") // append input
                     .attr("id", "input-country")
                     .attr("type", "text")

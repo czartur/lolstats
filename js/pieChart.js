@@ -100,7 +100,7 @@ function updateData()
 }
 
 function updateChampionPic(){
-    var svg = d3.select("#controls").select("svg");
+    var svg = d3.select("#controls").select("#image");
 
     var champion = d3.select("#input-box").property("value");
   
@@ -116,6 +116,23 @@ function updateChampionPic(){
 
 }
 
+function updateCounryPic(){
+    var svg = d3.select("#controls").select("#country");
+
+    const countryName = d3.select("#input-country").property("value");
+  
+    // remove previous pic
+    d3.select("#country-pic").remove();
+
+    // add picture
+    svg.append("image") 
+      .attr("id", "country-pic")
+      .attr("xlink:href", `assets/${regionMap[countryName]}.png`)
+      .attr("width", 100)
+      .attr("height", 100);
+
+}
+
 function initInputBox(){
     Promise.all([d3.json("data/championlist.json")]).then(function(data){
         //Champions à choisir
@@ -126,45 +143,51 @@ function initInputBox(){
             .style("flex", "0.4");
 
         inputContainer.append("p")
-        .append("label") // append label
-            .text("Select a champion: ")
-        .append("input") // append input
-            .attr("id", "input-box")
-            .attr("type", "text")
-            .attr("list", "options-list")
-        .append("datalist") //append datalist
-            .attr("id", "options-list")
+            .append("label") // append label
+                .text("Select a region: ")
+            .append("input") // append input
+                .attr("id", "input-country")
+                .attr("type", "text")
+                .attr("list", "country-list")
+            .append("datalist") //append datalist
+                .attr("id", "country-list") 
+      //  console.log(Object.keys(regionMap))
+        d3.select("#country-list")
+                .selectAll("option")
+                .data(Object.keys(regionMap))
+                .enter()
+                .append("option")
+                .attr("value", d => d);
+        const countryContainer = inputContainer.append("p");
 
-        d3.select("#options-list")
-            .selectAll("option")
-            .data(data[0])
-            .enter()
-            .append("option")
-            .attr("value", d => d);
-
+        countryContainer.append("svg")
+                .attr("width", 100)
+                .attr("height", 100)
+                .attr("id", "country");
         inputContainer.append("p")
                 .append("label") // append label
-                    .text("Add a country: ")
+                    .text("Select a champion: ")
                 .append("input") // append input
-                    .attr("id", "input-country")
+                    .attr("id", "input-box")
                     .attr("type", "text")
-                    .attr("list", "country-list")
+                    .attr("list", "options-list")
                 .append("datalist") //append datalist
-                    .attr("id", "country-list") 
-          //  console.log(Object.keys(regionMap))
-        d3.select("#country-list")
+                    .attr("id", "options-list")
+        
+                d3.select("#options-list")
                     .selectAll("option")
-                    .data(Object.keys(regionMap))
+                    .data(data[0])
                     .enter()
                     .append("option")
-                    .attr("value", d => d);
+                    .attr("value", d => d);        
 
         // add svg for picture
         const imageContainer = inputContainer.append("p");
 
         imageContainer.append("svg")
             .attr("width", 100)
-            .attr("height", 100);
+            .attr("height", 100)
+            .attr("id", "image") ;
         const box = d3.select("#input-box");
         const countryBox = d3.select("#input-country");
 
@@ -177,6 +200,7 @@ function initInputBox(){
             //add a bar for a chosen country
             if (Object.keys(regionMap).includes(countryValue) && data[0].includes(boxValue)) {
                 updateChampionPic();
+                updateCounryPic();
                 updateData();//updateBarPlot();
             }
         }
@@ -188,10 +212,10 @@ function createViz(){
     mainDiv.append("g")
         .attr("id", "controls");
     const svg = mainDiv.append("svg")
-        .attr("width", ctx.width + ctx.margin.left + ctx.margin.right + 500)
+        .attr("width", ctx.width + ctx.margin.left + ctx.margin.right + 300)
         .attr("height", ctx.height + ctx.margin.top + ctx.margin.bottom + 100)
         .append("g")
     .attr("id", "svg")
-        .attr("transform", `translate(${ctx.margin.left},${ctx.margin.top})`);
+        .attr("transform", `translate(0,${ctx.margin.top})`);
     initInputBox();
 }
