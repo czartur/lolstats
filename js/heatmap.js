@@ -13,7 +13,7 @@ const regionMap = {
   "Oceania" : "oc1",
 };
 
-const championListFile = "data/championList.json"
+const championListFile = "data/championlist.json"
 const elo = "challenger";
 
 let image_path = "assets/SRFull.png";
