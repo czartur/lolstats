@@ -123,7 +123,7 @@ function updateTable(){
           newRow[attr] = rawData[champion][attr].abs;
           
           // we want actually norm in popylarity
-          if(attr == "popularity") newRow[attr] = rawData[champion][attr].norm;
+          // if(attr == "popularity") newRow[attr] = rawData[champion][attr].norm;
         }
         data.push(newRow);
       }

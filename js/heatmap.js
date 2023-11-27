@@ -1,3 +1,13 @@
+var ctx = {
+  elo: "challenger",
+  region: "", // input field  
+  champion: "", // input field
+  minute: 0, // input field
+  points: {}, // champion --> data
+  regionMap: {}, // region name --> region id
+  championList: {} // all available champions
+};
+
 var heatmapData = {};
 
 const regionMap = {
@@ -31,6 +41,35 @@ var scale = {
         .domain([0, 15000])
         .range([cfg.height + cfg.margin.top, cfg.margin.top ]),
 };
+
+function updateRegion(){
+    var region = d3.select("#input-region").property("value"); 
+
+    // remove previous pic
+    // d3.select("#region-pic").remove();
+    
+    // check if region is valid
+    if(!Object.keys(ctx.regionMap).includes(region)) return;
+    ctx.region = region;
+
+    d3.json(`data/heatmap/heatmap_${ctx.regionMap[ctx.region]}_${ctx.elo}.json`).then((data) => {
+      ctx.points = data;
+
+      // what we need to update next 
+      updateRegionPic();
+      updateHeatmap();
+    });    
+}
+
+function updateChampion(){
+    var champion = d3.select("#input-champion").property("value");
+
+    if(!ctx.championList.includes(champion)) return;
+    ctx.champion = champion;
+    
+    updateChampionPic();
+    updateHeatmap();
+}
 
 function initInputBox(inputContainer, name, data){
     const label = `Select a ${name}: `;
@@ -70,15 +109,14 @@ function initInputBox(inputContainer, name, data){
     
     // add event listeners
     d3.select("#" + input_id).on("input", () => {
-      updateRegionPic();
-      updateChampionPic();
-      updateDensityChart();
+      updateRegion();
+      updateChampion();
     });
 }
 
-function initSlider(inputContainer){
+function initSlider(sliderContainer){
     // append slider group
-    var sliderContainer = inputContainer.append("g")
+    sliderContainer.append("g")
       .attr("id", "minute-slider")
       .attr("transform", `translate(${cfg.margin.left},${cfg.margin.top + cfg.height + 20})`);
     
@@ -97,10 +135,10 @@ function initSlider(inputContainer){
         .attr("value", 0)
         .attr("step", 1)
         .on("input", function(){
-          let minute = +this.value;
+          ctx.minute = +this.value;
           d3.select("#minute-slider").select("output")
-            .text(minute);
-          updateDensityChart();
+            .text(ctx.minute);
+            updateHeatmap();
         });
 
     // output minute 
@@ -108,7 +146,9 @@ function initSlider(inputContainer){
         .text("0"); 
 }
 
-function initTerrain(svg){
+function initTerrain(heatmapContainer){
+    let svg = heatmapContainer.select("svg");
+    
     svg.append("g")
       .attr("id", "terrain")
       .attr("transform", `translate(${cfg.margin.left},${cfg.margin.top})`)
@@ -118,7 +158,9 @@ function initTerrain(svg){
       .attr("height", cfg.height);
 }
 
-function initAxis(svg){
+function initAxis(heatmapContainer){
+    let svg = heatmapContainer.select("svg");
+
     // x axis
     svg.append("g")
         .attr("transform", `translate(0, ${cfg.height + cfg.margin.top})`) 
@@ -132,61 +174,43 @@ function initAxis(svg){
 
 function updateRegionPic(){
     var svg = d3.select("#group-region").select("svg");
-
-    var region = d3.select("#input-region").property("value"); 
-  
-    // remove previous pic
-    d3.select("#region-pic").remove();
     
-    // check if champion is valid (Brazil has every champ in the list **)
-    if(!Object.keys(regionMap).includes(region)) return;
+    // remove previous pic
+    // d3.select("#region-pic").remove();
     
     // add picture
     svg.append("image") 
       .attr("id", "region-pic")
-      .attr("xlink:href", `assets/${regionMap[region]}.png`)
+      .attr("xlink:href", `assets/${ctx.regionMap[ctx.region]}.png`)
       .attr("width", 100)
       .attr("height", 100);
 }
 
 function updateChampionPic(){
     var svg = d3.select("#group-champion").select("svg");
-
-    var champion = d3.select("#input-champion").property("value"); 
   
     // remove previous pic
-    d3.select("#champion-pic").remove();
-    
-    // check if champion is valid (Brazil has every champ in the list **)
-    if(!Object.keys(heatmapData['Brazil']).includes(champion)) return;
+    // d3.select("#champion-pic").remove();
     
     // add picture
     svg.append("image") 
       .attr("id", "champion-pic")
-      .attr("xlink:href", `https://ddragon.leagueoflegends.com/cdn/13.22.1/img/champion/${champion}.png`)
+      .attr("xlink:href", `https://ddragon.leagueoflegends.com/cdn/13.22.1/img/champion/${ctx.champion}.png`)
       .attr("width", 100)
       .attr("height", 100);
-
 }
 
-function updateDensityChart(){
+function updateHeatmap(){
     var svg = d3.select(".heatmap").select("svg");
     
-    // retrieve input values
-    var region = d3.select("#input-region").property("value");
-    var champion = d3.select("#input-champion").property("value"); 
-    var minute = d3.select("#minute-slider").select("input").property("value");
+    // check inputs
+    if(ctx.region == "" || ctx.champion == "") return;
 
     // remove any density-data in place
     d3.select("#density-data").remove();
     d3.select("#temp-legend").remove();
-    
-    // trigger the function only when both fields are filled
-    // and only when they are valid
-    if(!Object.keys(regionMap).includes(region)) return;
-    if(!Object.keys(heatmapData[region]).includes(champion)) return;
 
-    var data = heatmapData[region][champion][minute];
+    var data = ctx.points[ctx.champion][ctx.minute];
 
     // density data computation
     var densityData = d3.contourDensity()
@@ -239,50 +263,42 @@ function updateDensityChart(){
         .attr("fill", (d) => color(d.value));
 }
 
-function loadData(chartContainer, inputContainer, sliderContainer){
+function loadData(){
+  promises = [
+    d3.json("data/championlist.json"),
+    d3.json("data/regionmap.json")
+  ];
+
+  Promise.all(promises).then(([championList, regionMap]) => {
+    ctx.championList = championList;
+    ctx.regionMap = regionMap;
   
-  var svgChart = chartContainer.select("svg");
-  var svgInput = inputContainer.select("svg");
-
-  promises = [d3.json(championListFile)];
-
-  for(var region in regionMap){
-    promises.push(d3.json(`data/heatmap/heatmap_${regionMap[region]}_${elo}.json`));
-  }
-
-  Promise.all(promises).then((data) => {
-    var index = 0;
-    var championList = data[index++];
-
-    for(var region in regionMap){
-      heatmapData[region] = data[index++];
-    }
-
-    // region input box
-    initInputBox(inputContainer, "region", Object.keys(regionMap));
-    
-    // champion input box
+    // input box
+    let inputContainer = d3.select(".inputs");
+    // 1. region 
+    initInputBox(inputContainer, "region", Object.keys(regionMap)); 
+    // 2. champion 
     initInputBox(inputContainer, "champion", championList);
+  
+    
+    let heatmapContainer = d3.select(".heatmap");
+    // create svg
+    heatmapContainer.append("svg")
+      .attr("width", cfg.width + cfg.margin.left + cfg.margin.right + 500)
+      .attr("height", cfg.height + cfg.margin.top + cfg.margin.bottom);
 
-    //terrain
-    initTerrain(svgChart);
+    // terrain
+    initTerrain(heatmapContainer);
 
     // axis
-    initAxis(svgChart);
+    initAxis(heatmapContainer);
     
     // minute slider
+    let sliderContainer = d3.select(".slider");
     initSlider(sliderContainer);
   });
 }
 
 function createViz(){
-  var chartContainer = d3.select(".heatmap");
-  var inputContainer = d3.select(".inputBoxes");
-  var sliderContainer = d3.select(".slider");
-  
-  chartContainer.append("svg")
-      .attr("width", cfg.width + cfg.margin.left + cfg.margin.right + 500)
-      .attr("height", cfg.height + cfg.margin.top + cfg.margin.bottom);
-
-  loadData(chartContainer, inputContainer, sliderContainer);
+   loadData();
 }

@@ -2,20 +2,10 @@ var ctx = {
   elo: "challenger",
   region: "", // input field
   champions: new Set(), // champions added
-  stats: {}, // region --> champion --> attribute
+  championIdx: {}, // champion --> idx (used to trigger area highlight)
+  stats: {}, // champion --> attribute 
   championList: [], // list with all champions
-  regionMap: { // map region name to region code
-    "Europe West": "euw1",
-    "Europe Nordic & East": "eun1",
-    "Turkey" : "tr1",
-    "Russia": "ru",
-    "Brazil": "br1",
-    "North America": "na1",
-    "Latin America North": "la1",
-    "Latin America South": "la2",
-    "Japan" : "jp1",
-    "Oceania" : "oc1",
-  },
+  regionMap: {}, // map region name to region code
   wantedStats: {
     general: ["popularity", "gameEndedInSurrender", "win", "timePlayed"],
     gameplay: ["kda", "visionScore", "structureScore", "damagePerGold"],
@@ -33,10 +23,14 @@ function updateRegion(){
     // check if region is valid
     if(!Object.keys(ctx.regionMap).includes(region)) return;
     ctx.region = region;
-    
-    // what we need to update next 
-    updateRadar();
-    updateRegionPic();
+
+    d3.json(`data/stats/stats_${ctx.regionMap[ctx.region]}_${ctx.elo}.json`).then((data) => {
+      ctx.stats = data;
+
+      // what we need to update next 
+      updateRadar();
+      updateRegionPic();
+    });    
 }
 
 function updateChampions(newChampion = "", mode = "add"){
@@ -50,6 +44,13 @@ function updateChampions(newChampion = "", mode = "add"){
       ctx.champions.delete(newChampion);
     }
     
+    // update champion indexes
+    ctx.championIdx = {};
+    var index = 0;
+    for(let champion of ctx.champions){
+      ctx.championIdx[champion] = index++;
+    }
+
     // what we need to update next 
     updateRadar();
     updateLegend();
@@ -63,12 +64,13 @@ function updateFootnote(){
 }
 
 function updateRadar(){ 
+    
     // check inputs 
     if(ctx.region == "" || !ctx.champions.size){
       d3.select(".radar").selectAll("svg").remove();
       return;
     }
-    const data = ctx.stats[ctx.region];
+    const data = ctx.stats;
     
     // setup radar function parameters
     var margin = {top: 100, right: 100, bottom: 100, left: 100},
@@ -86,7 +88,6 @@ function updateRadar(){
     };
 
     // extract input
-    // stats = ['popularity', 'gameEndedInSurrender', 'win', 'timePlayed'];
     for(let statsCategory in ctx.wantedStats){
         var inputData = [];
         for(let champion of ctx.champions){
@@ -122,7 +123,15 @@ function updateLegend(){
           groupEnter.append("image")
               .attr("xlink:href", d => `https://ddragon.leagueoflegends.com/cdn/13.22.1/img/champion/${d}.png`)  
               .attr("width", picWidth)
-              .attr("height", picHeight);
+              .attr("height", picHeight)
+              .attr("cursor", "pointer")
+              // triger radar area highlights using champion idx
+              .on("mouseover", (ev,d) => {
+                d3.selectAll(`#radar-area-${ctx.championIdx[d]}`).dispatch("mouseover");
+              })
+              .on("mouseout", (ev,d) => {
+                d3.selectAll(`#radar-area-${ctx.championIdx[d]}`).dispatch("mouseout");
+              }); 
               
           // colored rectangle
           groupEnter.append("rect")
@@ -237,29 +246,25 @@ function initLegend(legendContainer){
 }
 
 function loadData(){
-    promises = [d3.json('data/championlist.json')];
-    for(var region in ctx.regionMap){
-      promises.push(d3.json(`data/stats/stats_${ctx.regionMap[region]}_${ctx.elo}.json`));
-    }
-    
-    Promise.all(promises).then((data) => {
-      var index = 0;
-      ctx.championList = data[index++];
-      
-      for(var region in ctx.regionMap){
-        ctx.stats[region] = data[index++]; 
-      }
-      
-      // region input box 
-      inputContainer = d3.select("#div-region");
-      initInputBox(d3.select(".inputs"), "region", Object.keys(ctx.regionMap));
 
-      // champion input box
-      inputContainer = d3.select("#div-champion");
-      initInputBox(d3.select(".inputs"), "champion", ctx.championList, true, true);
+    promises = [
+      d3.json("data/championlist.json"),
+      d3.json("data/regionmap.json"),
+    ];
+    
+    Promise.all(promises).then(([championList, regionMap]) => {
+      ctx.championList = championList;
+      ctx.regionMap = regionMap;
+      
+      // input boxes
+      let inputContainer = d3.select(".inputs");
+      // 1. region  
+      initInputBox(inputContainer, "region", Object.keys(ctx.regionMap));
+      // 2. champion 
+      initInputBox(inputContainer, "champion", ctx.championList, true, true); 
       
       // champion list legend
-      legendContainer = d3.select(".legend");
+      let legendContainer = d3.select(".legend");
       initLegend(legendContainer);
 
       // radar charts

@@ -156,14 +156,15 @@ function RadarChart(id, data, options) {
 	blobWrapper
 		.append("path")
 		.attr("class", "radarArea")
+    .attr("id", (d,i) => `radar-area-${i}`)
 		.attr("d", function(d,i) { return radarLine(d); })
 		.style("fill", function(d,i) { return cfg.color(i); })
 		.style("fill-opacity", cfg.opacityArea)
-		.on('mouseover', function (d,i){
+		.on('mouseover', function (){
 			//Dim all blobs
-			d3.selectAll(".radarArea")
+			d3.select(id).selectAll(".radarArea")
 				.transition().duration(200)
-				.style("fill-opacity", 0.1); 
+				.style("fill-opacity", 0.1);
 			//Bring back the hovered over blob
 			d3.select(this)
 				.transition().duration(200)
@@ -171,7 +172,7 @@ function RadarChart(id, data, options) {
 		})
 		.on('mouseout', function(){
 			//Bring back all blobs
-			d3.selectAll(".radarArea")
+			d3.select(id).selectAll(".radarArea")
 				.transition().duration(200)
 				.style("fill-opacity", cfg.opacityArea);
 		});
@@ -222,7 +223,7 @@ function RadarChart(id, data, options) {
 			tooltip
 				.attr('x', newX)
 				.attr('y', newY)
-				.text(`${d3.format(".1f")(d.abs)} ~ (top ${d3.format(".0%")(1-d.norm)})`)
+				.text(`${d3.format(".2f")(d.abs)} ~ (top ${d3.format(".1%")(1-d.norm)})`)
 				.transition().duration(200)
 				.style('opacity', 1);
 		})
