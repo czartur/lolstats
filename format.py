@@ -4,10 +4,14 @@ import os
 regions = ["euw1", "eun1", "tr1", "ru", "br1", "na1", "la1", "la2", "kr", "jp1", "oc1", "ph2", "sg2", "th2", "tw2", "vn2"]
 
 def FormatStats(region, elo):
-    
+    matchID_path = f"raw_data/matchid_{region}_{elo}.json"   
     ban_path = f"raw_data/championban_{region}_{elo}.json"
     data_path = f"raw_data/championstats_{region}_{elo}.json"
-    write_path = f"raw_data/formated/stats_{region}_{elo}.json"
+
+    write_path = f"data/stats/stats_{region}_{elo}.json"
+
+    with open(matchID_path, 'r') as json_file:
+        matchID = json.load(json_file)
 
     with open(data_path, 'r') as json_file:
         data = json.load(json_file)
@@ -17,7 +21,8 @@ def FormatStats(region, elo):
 
     attributes = {champion : {} for champion  in data}
     maxes = {}
-    
+    n_matches = len(matchID)
+
     # main data
     for champion in data:
         total = len(data[champion])
@@ -39,7 +44,7 @@ def FormatStats(region, elo):
                 championStats[stat] += match[stat] / total
 
         # add popularity
-        championStats['popularity'] = len(data[champion])
+        championStats['popularity'] = len(data[champion])/n_matches
 
         # add ban
         championStats['ban'] = ban[champion] if champion in ban.keys() else 0
@@ -86,6 +91,6 @@ def generateChampionList(region, elo):
         json.dump(championList, json_file, indent=2)
 
 
-generateChampionList('br1', 'challenger')
-# for region in regions:
-    # FormatStats(region, 'challenger')
+# generateChampionList('br1', 'challenger')
+for region in regions:
+    FormatStats(region, 'challenger')
