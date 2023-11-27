@@ -15,12 +15,46 @@
             align-items: center;
             height: 10vh;
           }
+          
+          .table {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+          th {
+            cursor: pointer;
+            border: 1px solid #ddd; 
+            padding: 8px;
+            text-align: left;
+            background-color: lightgray;
+          }
 
           th.selected {
             background-color: #f2f2f2;
           }
 
-          label {
+          td {
+            border: 1px solid #ddd; 
+            padding: 8px;
+            text-align: left;
+          }
+
+          .champion-icon {
+            max-width: 50px;
+            max-height: 50px;
+            margin-right: 5px;
+            vertical-align: middle;
+          }
+
+          .selected-icon {
+            max-height: 20px;
+            max-width: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+          }
+
+            label {
             margin-right: 10px;
           }
 
