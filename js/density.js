@@ -253,6 +253,7 @@ function updateHeatmap(){
         .attr("x", 5)
         .attr("y", -5)
         .text("Legend")
+        .attr('fill', 'white')
         .style('font-size', '12px')
         .style('font-family', 'Helvetica Neue');
     legendG.selectAll("rect")
