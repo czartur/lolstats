@@ -66,7 +66,7 @@ def update_heatmap(region: str, elo: str) -> None:
         except Exception as e:
             print(i, str(e))
             continue
-        print(i, matchid)
+        print(f"(Heatmap, {i}): {matchid}")
 
     write_to_json(heatmap_data, f'raw_data/heatmap_{region}_{elo}.json')
 
@@ -77,14 +77,16 @@ a list of stat info for each champion
 [champion] -> List[{tons of data}]
 
 """
-def update_champion_stats(region: str, elo: str, wanted_stats: List[str]) -> None:
+def update_champion_stats(region: str, elo: str, unwanted_stats: Optional[List[str]] = None) -> None:
     # read matchid data
     if not (matchid_data := read_json(f'raw_data/matchid_{region}_{elo}.json')):
         print('matchid file not found')
         return
+    
+    if not unwanted_stats: 
+        unwanted_stats = []
+
     # read champion_stats data
-    # if not (stats_data := read_json(f'raw_data/championstats_{region}_{elo}.json')):
-        # stats_data = dict()
     stats_data = dict()
 
     # update stats data using all matches
@@ -102,13 +104,20 @@ def update_champion_stats(region: str, elo: str, wanted_stats: List[str]) -> Non
             
             # filter data
             champ_data = match_data['info']['participants'][participant_idx]
-            champ_data = {key:value for key, value in champ_data.items() if not key in wanted_stats}
+            champ_data = {key:value for key, value in champ_data.items() if not key in unwanted_stats}
             
             stats_data[champion].append(champ_data)
-        print(i, matchid)
+        print(f"(Status, {i}): {matchid}")
 
     write_to_json(stats_data, f'raw_data/championstats_{region}_{elo}.json')
 
+"""
+Update champion ban rate for $region and $elo.
+
+1. read all matches and count the number of times each champion was played
+
+2. normalize by the number of read matches
+"""
 def update_ban_rate(region: str, elo: str) -> None:
     # read matchid data
     if not (matchid_data := read_json(f'raw_data/matchid_{region}_{elo}.json')):
@@ -120,6 +129,8 @@ def update_ban_rate(region: str, elo: str) -> None:
     # champion id to champion name map
     id_to_name = riot.request_champions_id() 
     
+    # read matches
+    read_matches = 0
     for i, matchid in enumerate(matchid_data, 1):
         try:
             match_data = riot.request_match_data(region, matchid)
@@ -135,67 +146,25 @@ def update_ban_rate(region: str, elo: str) -> None:
                 ban_data[champion] = 0
             ban_data[champion] += 1 / len(matchid_data)
 
-        print(i, matchid)
+        read_matches += 1
+        print(f"(Ban, {i}): {matchid}")
+
+    # normalize
+    assert(read_matches > 0)
+    for champion in ban_data:
+        ban_data[champion] /= read_matches
 
     write_to_json(ban_data, f'raw_data/championban_{region}_{elo}.json')
 
 
 def main():
-    # regions = ["euw1", "eun1", "tr1", "ru", "br1", "na1", "la1", "la2", "kr", "jp1", "oc1", "ph2", "sg2", "th2", "tw2", "vn2"]
-    regions = ["vn2"]
+    regions = ["euw1", "eun1", "tr1", "ru", "br1", "na1", "la1", "la2", "kr", "jp1", "oc1", "ph2", "sg2", "th2", "tw2", "vn2"]
     elo = "challenger"
     for region in regions:
-        # update_matchid_list(region, elo)
-        
-        # update_heatmap(region, elo)
- 
-        # combat_stats = ['kills', 'deaths', 'assists', 'timeCCingOthers', 'totalHealsOnTeammates', 'totalDamageTaken', 'totalDamageDealt']
-        # income_control_stats = ['goldEarned', 'goldSpent', 'neutralMinionsKilled', 'totalMinionsKilled', 'visionScore', 'baronKills', 'dragonKills', 'turretTakedowns', 'inhibitorKills']
-        # game_stats = ['timePlayed', 'win', 'gameEndedInSurrender', 'role', 'lane', 'summoner1Id', 'summoner2Id', 'summoner1Casts', 'summoner2Casts']
-        # wanted_stats = combat_stats + income_control_stats + game_stats
-        # update_champion_stats(region, elo, wanted_stats = wanted_stats)
-        
-        update_champion_stats(region, elo, wanted_stats = []) # no filter
-        
-        # update_ban_rate(region, elo)
+        update_matchid_list(region, elo)
+        update_heatmap(region, elo)
+        update_champion_stats(region, elo, unwanted_stats = []) # no filter
+        update_ban_rate(region, elo)
 
 if __name__ == "__main__":
     main()
-
-# combat_stats = ['kills', 'deaths', 'assists', 'timeCCingOthers', 'totalHealsOnTeammates', 'totalDamakeTaken', 'totalDamageDealt']
-# income_control_stats = ['goldEarned', 'neutralMinionsKilled', 'timePlayed', 'visionScore', 'baronKills', 'dragonKills', 'turretKills', 'inhibitorKills']
-# wanted_stats = combat_stats + income_control_stats
-# update_champion_stats('euw1', 'challenger', wanted_stats = wanted_stats)
-# update_ban_rate('br1', 'challenger')
-
-# https://mobalytics.gg/blog/how-to-use-the-league-of-legends-stats-tab-to-improve/
-# here we can find ideas for stats separated in combat / income / map control
-
-# CHAMP LIST: (allow sorting by)
-# --> Times played (prob. rate)
-# --> game time
-# --> total gold
-# --> pick rate
-# --> ban rate 
-# --> win rate
-# --> kda
-# --> cs / min
-
-# RADAR CHART: 
-# 1. Combat:
-#   --> kda ratio (kills + assists / deaths)
-#   --> kill participation (kills + assists / total kills)
-#   --> utility score (crowd control, team healing and team dmg red)
-#   --> damage per death (total damage / deaths)
-#   --> damage share (total damage / team total damage)
-
-
-# 2. Income & Control:
-#   --> damage per gold (total damage / total gold)
-#   --> cs per minute
-#   --> vision score
-#   --> objectives (dragonKills, baronKills, turretKills, inhibitorKills)
-
-# hard ...
-#   --> early gold adv (gold at 15 min / oponent's gold at 15 min)
-#   --> early cs adv (cs at 15 / oponent's cs at 15 min)
