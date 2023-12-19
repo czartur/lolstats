@@ -6,23 +6,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Page</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/tooltip.css">
 </head>
 <body>
-
   
-  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; height: 100vh">
-    <div>
-      <img src="assets/lol.gif" alt="League of Legends Image" style="max-width: 100%; height: auto;">
-      <h1>Welcome to the League of Draven!</h1>
+  <div class="container">
+    <div class="header"> 
+      <!-- <img src="assets/lol.gif" alt="League of Legends Image" style="max-width: 100%; height: auto;"> -->
+      <img src="assets/named_logo.png" alt="League of Legends Image" style="max-width: 30%; height: auto;">
+      <h1>Choose your chart</h1>
     </div>
-    <div>
-      <a href="championPositioning.html"><button>Champion positioning</button></a>
-      <a href="championStatus.html"><button>Champion status</button></a>
-      <a href="regionComparison.html"><button>Region comparison</button></a>
-      <a href="tabularPage.html"><button>Champion table</button></a>
-      <a href="championStats.html"><button>Champion Statistics</button></a>
+    <div class="menu">
+
+      <div>
+      <a href="pages/density.html" class="page-link">
+        <button class="page-button" data-tooltip="Common champion positions each minute in the game">Density</button>
+      </a>
+      </div> 
+
+      <div>
+      <a href="pages/pie.html" class="page-link">
+        <button class="page-button" data-tooltip="Simple general statistics per champion">Pie</button>
+      </a> 
+      </div>  
+
+      <div>
+      <a href="pages/barplot.html" class="page-link">
+        <button class="page-button" data-tooltip="Region comparison using game attributes">Barplot</button>
+      </a>
+      </div>
+      
+      <div>
+      <a href="pages/table.html" class="page-link">
+        <button class="page-button" data-tooltip="Rank champions using general statistics">Table</button>
+      </a>
+      </div>
+
+      <div>
+      <a href="pages/radar.html" class="page-link">
+        <button class="page-button" data-tooltip="Compare multiple champions in 3 categories">Radar</button>
+      </a>
+      
+      </div>
     </div> 
   </div>
+  <script type="text/javascript" src="js/d3.v7.min.js"></script>
+  <script>
+    const buttons = d3.selectAll('.page-button');
+
+    // Select the tooltip div
+    const tooltip = d3.select('.tooltip');
+
+    // Add event listeners to buttons
+    buttons.on('mouseover', function () {
+      const button = d3.select(this);
+      const tooltipText = button.attr('data-tooltip');
+
+      // Position tooltip relative to the button
+      const [x, y] = d3.pointer(event);
+      tooltip.style('left', x + 'px')
+             .style('top', (y - 20) + 'px')
+             .text(tooltipText)
+             .style('display', 'block');
+    });
+
+    buttons.on('mouseout', function () {
+      tooltip.style('display', 'none');
+    });
+  </script>
+
 </body>
 </html>
 

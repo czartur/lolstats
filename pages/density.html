@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <base href="../">
+        <meta charset="utf-8">
+        <title>Position</title>
+        <!-- https://d3js.org/ -->
+        <script type="text/javascript" src="js/d3.v7.min.js"></script>
+        <script src="https://d3js.org/d3-contour.v1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+        <script type="text/javascript" src="js/density.js"></script>
+        <link rel="stylesheet" href="css/global.css">
+        <link rel="stylesheet" href="css/input.css">
+        <style type="text/css">
+          
+            svg {
+                display: block;
+                font-family: sans-serif;
+                font-size: 10px;
+            }
+
+            .legend {
+                font-family: "Helvetica Neue", Helvetica, sans-serif;
+                font-size: 20px; /* Adjust the font size as needed */
+                font-weight: bold; /* Make it bold if desired */
+                fill: #333; /* Change the text color */
+                /* Add other styles as desired */
+            }
+          
+          .heatmap {
+            width: 600px;
+            margin: 0 auto;
+            justify-content: center;
+          }
+
+          .inputs {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 10vh; 
+          }
+
+          .slider {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+          label {
+            margin-right: 10px;
+          }
+      </style>
+                        
+    </head>
+    <body onload="createViz()" >
+        <div id="main"> 
+          <div style="display: flex; justify-content: space-between; align-items: center;"> 
+            <a href="index.html"><button class="page-button menu-button">Menu</button></a>
+            <h1 style="margin: 0">Density</h1>
+            <img src="assets/mini_logo.png" alt="Logo" class="logo">
+          </div>
+          <div style="margin-top: 3%">
+            <div class="inputs"></div>
+            <div class="heatmap"></div>
+            <div class="slider"> </div>
+          </div>
+        </div>
+    </body>
+</html>

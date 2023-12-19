@@ -21,7 +21,7 @@ const regionMap = {
 };
 
 
-ctx.selectedCountries = ["Brazil", "Europe West", "Europe Nordic & East","Russia","Japan"];
+ctx.selectedCountries = new Set(["Brazil", "Europe West", "Europe Nordic & East","Russia","Japan"]);
 ctx.Attributes = [
     "assists",
     "baronKills",
@@ -41,7 +41,7 @@ ctx.Attributes = [
     "structureKills",
     "monsterKills"
   ];
-function createBarPlot(data, championName, attr, countries) {
+function createBarPlot(data, championName, attr, countries, only_x_axis = false) {
     const svg = d3.select("#svg");
     
     const margin = { top: 20, right: 20, bottom: 30, left: 20 };
@@ -63,20 +63,30 @@ function createBarPlot(data, championName, attr, countries) {
     // Set the domain for x and y scales
     x.domain(countries);
     // Draw the x axis
-    chart.append("g")
+    var x_axis = chart.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
-        .selectAll("text")
+    x_axis.selectAll("text")
         .attr("transform", "rotate(45)")
-        .attr("text-anchor", "start");
+        .attr("text-anchor", "start")
+        .attr("fill", "white");
+    x_axis.selectAll("line, path")
+        .attr("stroke", "white");
+    if(only_x_axis) return;
+
     const maxY = d3.max(countries, (country, i) => data[i][championName][attr].abs);
     y.domain([0, maxY]);
+
     // Draw the y axis
-    chart.append("g")
+    var y_axis = chart.append("g")
         .attr("class", "y axis")
         .call(yAxis);
-
+    y_axis.selectAll("text")
+        .attr("fill", "white");
+    y_axis.selectAll("line, path")
+        .attr("stroke", "white");
+  
     // Draw bars for each country
     countries.forEach((country, i) => {
         chart.selectAll(".bar-" + country.toLowerCase())
@@ -102,19 +112,22 @@ function updateData()
     const championName = d3.select("#input-box").property("value");
     const attr = d3.select("#input-attr").property("value");
 
-    const urlCountries = ctx.selectedCountries.map(country => regionMap[country]);
+    // const urlCountries = ctx.selectedCountries.map(country => regionMap[country]);
+    const urlCountries = [...ctx.selectedCountries].map(country => regionMap[country]);
     const promises = urlCountries.map(countryCode => {
         const url = `data/stats/stats_${countryCode}_challenger.json`;
         return d3.json(url);
     }); 
 
     Promise.all(promises).then(function (data) {
-        createBarPlot(data, championName, attr, ctx.selectedCountries);
+        // createBarPlot(data, championName, attr, ctx.selectedCountries);
+        createBarPlot(data, championName, attr, [...ctx.selectedCountries]);
     });
 }
 
 function addCountry(country) {
-    ctx.selectedCountries.push(country);
+    // ctx.selectedCountries.push(country);
+    ctx.selectedCountries.add(country);
     updateData();
 }
 
@@ -130,11 +143,15 @@ function handleBarClick(country) {
 
 // Function to delete a country
 function deleteCountry(country) {
-    const index = ctx.selectedCountries.indexOf(country);
-    if (index !== -1) {
-        ctx.selectedCountries.splice(index, 1);
-        updateData();
+    if(ctx.selectedCountries.has(country)){
+      ctx.selectedCountries.delete(country);
+      updateData();
     }
+    // const index = ctx.selectedCountries.indexOf(country);
+    // if (index !== -1) {
+    //     ctx.selectedCountries.splice(index, 1);
+    //     updateData();
+    // }
 }
 function updateChampionPic(){
     var svg = d3.select("#controls").select("svg");
@@ -157,17 +174,47 @@ function initInputBox(){
     Promise.all([d3.json("data/championlist.json"), d3.json("data/attributes.json")]).then(function(data){
         //Champions à choisir
         // html block
-        const controls = d3.select("#controls").style("display", "flex");
+        const controls = d3.select("#controls").style("display", "flex").style("flex-direction", "column");
         const inputContainer = controls.append("div")
             .attr("class", "input-container")
             .style("flex", "0.4");
 
-        inputContainer.append("p")
-        .append("label") // append label
-            .text("Select a champion: ")
+        const regionContainer = controls.append("div")
+            .attr("class", "input-container")
+            .style("flex", "0.4");
+        
+
+        //attributs à choisir
+        inputContainer
+            // .append("p")
+            // .append("label") // append label
+                // .text("Select an attribute: ")
+      // div1
+            .append("input") // append input
+                .attr("id", "input-attr")
+                .attr("type", "text")
+                .attr("placeholder", "Select an attribute")
+                .classed("custom-input", true)
+                .attr("list", "attributs-list")
+            .append("datalist") //append datalist
+                .attr("id", "attributs-list") 
+        d3.select("#attributs-list")
+                .selectAll("option")
+                .data(data[1])
+                .enter()
+                .append("option")
+                .attr("value", d => d);
+
+        inputContainer
+          // .append("p")
+          // .append("label") // append label
+            // .text("Select a champion: ")
+      // div1
         .append("input") // append input
             .attr("id", "input-box")
             .attr("type", "text")
+            .attr("placeholder", "Select a champion")
+            .classed("custom-input", true)
             .attr("list", "options-list")
         .append("datalist") //append datalist
             .attr("id", "options-list")
@@ -179,29 +226,17 @@ function initInputBox(){
             .append("option")
             .attr("value", d => d);
 
-        //attributs à choisir
-        inputContainer.append("p")
-            .append("label") // append label
-                .text("Select an attribute: ")
-            .append("input") // append input
-                .attr("id", "input-attr")
-                .attr("type", "text")
-                .attr("list", "attributs-list")
-            .append("datalist") //append datalist
-                .attr("id", "attributs-list") 
-        d3.select("#attributs-list")
-                .selectAll("option")
-                .data(data[1])
-                .enter()
-                .append("option")
-                .attr("value", d => d);
-
-        inputContainer.append("p")
-                .append("label") // append label
-                    .text("Select a region: ")
+        regionContainer
+        // inputContainer
+                // .append("p")
+                // .append("label") // append label
+                    // .text("Select a region: ")
                 .append("input") // append input
                     .attr("id", "input-country")
                     .attr("type", "text")
+                    .attr("placeholder", "Add a region")
+                    .classed("custom-input", true)
+                    .style("background-color", "#ffcc00")
                     .attr("list", "country-list")
                 .append("datalist") //append datalist
                     .attr("id", "country-list") 
@@ -224,15 +259,25 @@ function initInputBox(){
 
         box.on("input", checkAndBarPlot);
         attrBox.on("input", checkAndBarPlot);
-        countryBox.on("input", checkAndBarPlot);
+        // countryBox.on("input", checkAndBarPlot);
+        countryBox.on("input", checkAndAddCountry);
+
+        function checkAndAddCountry(){
+            const countryValue = countryBox.node().value;
+            if(Object.keys(regionMap).includes(countryValue)){
+              addCountry(countryValue);
+              checkAndBarPlot();
+            }
+        }
 
         function checkAndBarPlot() {
             const boxValue = box.node().value;
             const attrValue = attrBox.node().value;
-            const countryValue = countryBox.node().value;
+            // const countryValue = countryBox.node().value;
             //add a bar for a chosen country
-            if (Object.keys(regionMap).includes(countryValue) && data[0].includes(boxValue) && data[1].includes(attrValue)) {
-                addCountry(countryValue);
+            // if (Object.keys(regionMap).includes(countryValue) && data[0].includes(boxValue) && data[1].includes(attrValue)) {
+                // addCountry(countryValue);
+            if (data[0].includes(boxValue) && data[1].includes(attrValue)) {
                 updateChampionPic();
                 updateData();//updateBarPlot();
             }
@@ -251,7 +296,8 @@ function createViz(){
     .attr("id", "svg")
         .attr("transform", `translate(${ctx.margin.left},${ctx.margin.top})`);
     initInputBox();
-
+    
+    createBarPlot("", "", "", [...ctx.selectedCountries], true);
     mainDiv.append("div")
         .attr("class", "footnote")
         .html("If you want to delete a bar, click on it twice");

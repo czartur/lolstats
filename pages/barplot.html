@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <base href="../">
+        <meta charset="utf-8">
+        <title>Barplot</title>
+        <!-- https://d3js.org/ -->
+        <script type="text/javascript" src="js/d3.v7.min.js"></script>
+        <script src="https://d3js.org/d3-contour.v1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+        <script type="text/javascript" src="js/barplot.js"></script>
+        <link rel="stylesheet" href="css/global.css">
+        <link rel="stylesheet" href="css/input.css">
+        <style type="text/css">
+            svg {
+                display: block;
+                font-family: sans-serif;
+                font-size: 10px;
+            }
+            .input-container {
+                display: flex;
+                align-items: center;
+                margin: auto;
+                column-gap: 20px;
+            }
+            .barplot {
+                display: flex;
+                margin: auto;
+                justify-content: center;
+            }
+
+            .footnote {
+                display: flex;
+                margin: auto;
+                justify-content: center;
+                font-size: 12px;
+                color: #666;
+                margin-top: 10px;
+            }
+</style>
+                        
+            </style>
+    </head>
+    <body onload="createViz()">
+        <div id="main"> 
+          <div style="display: flex; justify-content: space-between; align-items: center;"> 
+            <a href="index.html"><button class="page-button menu-button">Menu</button></a>
+            <h1 style="margin: 0"> Barplot </h1>
+            <img src="../assets/mini_logo.png" alt="Logo" class="logo">
+          </div>
+        </div>
+    </body>
+</html>

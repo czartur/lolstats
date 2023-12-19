@@ -58,7 +58,7 @@ function updateChampions(newChampion = "", mode = "add"){
 }
 
 function updateFootnote(){
-    let msg = ctx.champions.size ? "Double click a champion to delete it" : "Add at least one champion to start"; 
+    let msg = ctx.champions.size ? "Double click on a champion to delete it" : "Add at least one champion to start"; 
     d3.select(".footnote")
         .html(msg);
 }
@@ -68,6 +68,7 @@ function updateRadar(){
     // check inputs 
     if(ctx.region == "" || !ctx.champions.size){
       d3.select(".radar").selectAll("svg").remove();
+      d3.select(".radar").selectAll("h1").remove();
       return;
     }
     const data = ctx.stats;
@@ -87,7 +88,7 @@ function updateRadar(){
         color: ctx.color,
     };
 
-    // extract input
+    // extract input 
     for(let statsCategory in ctx.wantedStats){
         var inputData = [];
         for(let champion of ctx.champions){
@@ -99,7 +100,9 @@ function updateRadar(){
         }
 
         // create/update radar
-        let group_id = `#${statsCategory}-stats`; 
+        let group_id = `#${statsCategory}-stats`;
+        d3.select(group_id).select("h1").remove();
+        d3.select(group_id).append("h1").text(`${statsCategory}`);
         RadarChart(group_id, inputData, radarChartOptions);
     }
 }
@@ -110,8 +113,7 @@ function updateLegend(){
         rectWidth = 100,
         rectHeight = 20;
 
-    var svg = d3.select(".legend").select("svg");
-    
+    var svg = d3.select(".legend").select("svg"); 
     svg.selectAll("g")
       .data(ctx.champions, (d,i) => d)
       .join(
@@ -194,7 +196,7 @@ function updateRegionPic(){
 }
 
 function initInputBox(inputContainer, name, data, pic = true, add = false){
-    const label = add ? `Add a ${name} : ` : `Select a ${name}: `;
+    const label = add ? `Add a ${name}` : `Select a ${name}`;
     const group_id = `group-${name}`;
     const input_id = `input-${name}`;
     const datalist_id = `${name}-list`;
@@ -206,12 +208,12 @@ function initInputBox(inputContainer, name, data, pic = true, add = false){
     .style("align-items", "center");
     
     // add label
-    g.append("label")
-      .text(label)
-    .append("input")
+    g.append("input")
       .attr("id", input_id)
       .attr("type", "text")
       .attr("list", datalist_id)
+      .attr("placeholder", label)
+      .classed("custom-input", true)
     .append("datalist")
       .attr("id", datalist_id)
       .style("margin-right", "10px");
@@ -260,7 +262,7 @@ function loadData(){
       let inputContainer = d3.select(".inputs");
       // 1. region  
       initInputBox(inputContainer, "region", Object.keys(ctx.regionMap));
-      // 2. champion 
+      // 2. champion
       initInputBox(inputContainer, "champion", ctx.championList, true, true); 
       
       // champion list legend
@@ -268,7 +270,7 @@ function loadData(){
       initLegend(legendContainer);
 
       // radar charts
-      radarContainer = d3.select(".radar");
+      radarContainer = d3.select(".radar"); 
       // 1. general stats
       radarContainer.append("g").attr("id", "general-stats");
       // 2. gameplay stats

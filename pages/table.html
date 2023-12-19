@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <base href="../">
+        <meta charset="utf-8">
+        <title>LOL - Stats</title>
+        <!-- https://d3js.org/ -->
+        <script type="text/javascript" src="js/d3.v7.min.js"></script>
+        <script src="https://d3js.org/d3-contour.v1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+        <script type="text/javascript" src="js/table.js"></script>
+        <link rel="stylesheet" href="css/global.css">
+        <link rel="stylesheet" href="css/input.css">
+        <style type="text/css">    
+          .inputs {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 10vh;
+          }
+
+          /* Table container */
+.table {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Table styling */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 800px; /* Adjust the max-width as needed */
+  margin: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Table header (th) styling */
+th {
+  cursor: pointer;
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  background-color: #90908D;
+  transition: background-color 0.3s ease;
+}
+
+
+th:hover {
+  background-color: #e0e0e0;
+  background-color: #d3b46c;
+}
+
+/* Selected header styling */
+th.selected {
+  background-color: #d9edf7;
+  background-color: #009eb3;
+}
+
+/* Table data (td) styling */
+td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  transition: background-color 0.3s ease;
+  background-color: #fff;
+}
+
+/* Hover effect on table rows */
+tr:hover td {
+  background-color: #f9f9f9;
+  background-color: #fcfcc0;
+}
+          /*
+          .table {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+         th {
+            cursor: pointer;
+            border: 1px solid #ddd; 
+            padding: 8px;
+            text-align: left;
+            background-color: lightgray;
+          }
+
+          th.selected {
+            background-color: #f2f2f2;
+          }
+
+          td { 
+            background-color: white;
+            border: 1px solid #ddd; 
+            padding: 8px;
+            text-align: left;
+          }
+          */
+
+          .champion-icon {
+            max-width: 50px;
+            max-height: 50px;
+            margin-right: 5px;
+            vertical-align: middle;
+          }
+
+          .selected-icon {
+            max-height: 20px;
+            max-width: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+          }
+
+            label {
+            margin-right: 10px;
+          }
+
+          .footnote {
+            display: flex;
+            margin: auto;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+          }
+
+      </style>
+                        
+    </head>
+    <body onload="createViz()" >
+
+        <div id="main">
+          <div style="display: flex; justify-content: space-between; align-items: center;"> 
+            <a href="index.html"><button class="page-button menu-button">Menu</button></a>
+            <h1 style="margin: 0">Table</h1>
+            <img src="assets/mini_logo.png" alt="Logo" class="logo">
+          </div>
+          <div style="margin-top: 3%">
+            <div class="inputs"></div>
+            <div class="table"></div>
+            <div class="footnote"></div>
+          </div>
+        </div>
+    </body>
+</html>
