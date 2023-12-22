@@ -217,6 +217,11 @@ function initInputBox(inputContainer, name, data, pic = true, add = false){
     .append("datalist")
       .attr("id", datalist_id)
       .style("margin-right", "10px");
+    
+    if(add){
+      g.select("input")
+      .style("background-color", "#ffcc00");
+    }
 
     // add option list
     d3.select("#" + datalist_id)
